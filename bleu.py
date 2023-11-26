@@ -1,23 +1,22 @@
-from nltk.translate.bleu_score import sentence_bleu
+from nltk.translate.bleu_score import corpus_bleu
 from tqdm import tqdm
 import Preprocessing
 import test
-import numpy as np
 
 reference = Preprocessing.test_dataset
-bleu = []
-for img in tqdm(Preprocessing.test_dataset.keys()):
-    caption = test.predict_captions(img).split()
-    bleu1 = sentence_bleu(reference[img], caption)
-    bleu.append(bleu1)
-    break
+for img in tqdm(reference.keys()):
+    actual, predicted, beam_predicted = list(), list(), list()
+    for key, desc_list in reference.items():
+        caption = test.predict_captions(key)
+        beam_caption = test.beam_search_predictions(key, beam_index=5)
+        references = [d.split()[1:-1] for d in desc_list]
+        actual.append(references)
+        predicted.append(caption.split())
+        beam_predicted.append(beam_caption.split())
 
-print("Mean For Full Predicted Captions BLEU {:4.3f}".format(np.mean(bleu)))
-
-bleu = []
-for img in tqdm(Preprocessing.test_dataset.keys()):
-    caption = test.beam_search_predictions(img, beam_index=5).split()
-    bleu1 = sentence_bleu(reference[img], caption)
-    bleu.append(bleu1)
-
-print("Mean For Beam Search Captions BLEU {:4.3f}".format(np.mean(bleu)))
+    print("Greedy Search Predicted Captions BLEU-2: %f" % corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0)))
+    print("Greedy Search Predicted Captions BLEU-3: %f" % corpus_bleu(actual, predicted, weights=(0.3, 0.3, 0.3, 0)))
+    print(
+        "Beam Search K=5 Predicted Captions BLEU-2: %f" % corpus_bleu(actual, beam_predicted, weights=(0.5, 0.5, 0, 0)))
+    print("Beam Search K=5 Predicted Captions BLEU-3: %f" % corpus_bleu(actual, beam_predicted,
+                                                                        weights=(0.3, 0.3, 0.3, 0)))

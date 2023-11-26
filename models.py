@@ -1,8 +1,6 @@
 from keras import Sequential, Input, Model
 from keras.src.layers import Dense, RepeatVector, Embedding, Bidirectional, Dropout, BatchNormalization, \
-    TimeDistributed, LSTM, Concatenate, Activation
-from keras import layers
-from keras.regularizers import l2
+    TimeDistributed, LSTM, Concatenate
 import Preprocessing
 
 EMBEDDING_DIM = 300
@@ -20,7 +18,6 @@ lang_model.add(Embedding(Preprocessing.total_words, EMBEDDING_DIM, input_length=
 lang_model.add(Bidirectional(LSTM(256, return_sequences=True)))
 lang_model.add(Dropout(0.5))
 lang_model.add(BatchNormalization())
-# lang_model.add(TimeDistributed(Dense(EMBEDDING_DIM)))
 
 lang_input = Input(shape=(Preprocessing.max_length_caption,))
 lang_embedding = (Embedding(Preprocessing.total_words, EMBEDDING_DIM, input_length=Preprocessing.max_length_caption)
@@ -51,17 +48,3 @@ print(lang_model.summary())
 print("Final Model!")
 print(fin_model.summary())
 
-# v_size = vocab_size
-# input_image = layers.Input(shape=(2048,))
-# img_d = layers.Dense(128, activation='relu')(input_image)
-# inp = layers.Input(shape=(30,))
-# lang = layers.Embedding(v_size, 64)(inp)
-# lang = layers.LSTM(128, return_sequences=True, recurrent_regularizer=l2(0.01), bias_regularizer=l2(0.01))(lang)
-# new_m = Dropout(0.5)(lang)
-# lang = layers.Bidirectional(LSTM(64, recurrent_regularizer=l2(0.01), bias_regularizer=l2(0.01)))(new_m)
-# conca = layers.add([lang, img_d])
-# conca = layers.Dense(256, activation='relu')(conca)
-# output = layers.Dense(v_size, activation='softmax')(conca)
-# fin_model = Model(inputs=[input_image, inp], outputs=output)
-# fin_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-# print(fin_model.summary())

@@ -7,7 +7,6 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.src.preprocessing.text import Tokenizer
 from itertools import chain
 import numpy as np
-from tqdm import tqdm
 import random
 
 import encoder
@@ -91,33 +90,49 @@ def split_dict(dictionary, n):
     return a, b
 
 
-training_dataset, test_dataset = split_dict(dataset, 28000)
+training_dataset, test_dataset = split_dict(dataset, 7091)
+captionz = []
+img_id = []
+
+for img in training_dataset.keys():
+    for caption in training_dataset[img]:
+        captionz.append(caption)
+        img_id.append(img)
+
+print(len(captionz), len(img_id))
+no_samples = 0
+for caption in captionz:
+    no_samples += len(caption.split()) - 1
+print(no_samples)
+
+caption_length = [len(caption.split()) for caption in captionz]
+max_length_caption = max(caption_length)
 
 
-def process_captions(data, batch_size):
+def data_process(batch_size):
     partial_captions = []
     next_words = []
     images = []
     total_count = 0
     while 1:
-        for img in tqdm(data.keys()):
-            current_image = img_encodings[img][0]
-            for caption in data[img]:
-                for i in range(len(caption.split()) - 1):
-                    total_count += 1
-                    partial = [word_idx[txt] for txt in caption.split()[:i + 1]]
-                    partial_captions.append(partial)
-                    next = np.zeros(total_words)
-                    next[word_idx[caption.split()[i + 1]]] = 1
-                    next_words.append(next)
-                    images.append(current_image)
 
-                    if total_count >= batch_size:
-                        next_words = np.asarray(next_words)
-                        images = np.asarray(images)
-                        partial_captions = pad_sequences(partial_captions, maxlen=max_length_caption, padding='post')
-                        total_count = 0
-                        yield [[images, partial_captions], next_words]
-                        partial_captions = []
-                        next_words = []
-                        images = []
+        for image_counter, caption in enumerate(captionz):
+            current_image = img_encodings[img_id[image_counter]][0]
+            for i in range(len(caption.split()) - 1):
+                total_count += 1
+                partial = [word_idx[txt] for txt in caption.split()[:i + 1]]
+                partial_captions.append(partial)
+                next = np.zeros(total_words)
+                next[word_idx[caption.split()[i + 1]]] = 1
+                next_words.append(next)
+                images.append(current_image)
+
+                if total_count >= batch_size:
+                    next_words = np.asarray(next_words)
+                    images = np.asarray(images)
+                    partial_captions = pad_sequences(partial_captions, maxlen=max_length_caption, padding='post')
+                    total_count = 0
+                    yield [[images, partial_captions], next_words]
+                    partial_captions = []
+                    next_words = []
+                    images = []
