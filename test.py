@@ -1,6 +1,7 @@
 import os
 
 from keras.preprocessing.sequence import pad_sequences
+from nltk.translate.bleu_score import corpus_bleu
 import Preprocessing
 import models
 import numpy as np
@@ -76,7 +77,7 @@ current_working_directory = os.getcwd()
 image_path = current_working_directory + "/flickr/Images/"
 
 for i in range(5):
-    image_file = list(test_dataset.keys())[random.randint(0, 3783)]
+    image_file = list(test_dataset.keys())[random.randint(0, 1000)]
     test_image = image_path + str(image_file)
     # Read the image using matplotlib
     image = mpimg.imread(test_image)
@@ -84,7 +85,16 @@ for i in range(5):
     caption1 = predict_captions(image_file)
     caption2 = beam_search_predictions(image_file, beam_index=3)
     caption3 = beam_search_predictions(image_file, beam_index=5)
-    caption4 = beam_search_predictions(image_file, beam_index=7)
+
+    actual, predicted, beam_predicted, beam_predicted2 = list(), list(), list(), list()
+    references = [d.split()[1:-1] for d in test_dataset[image_file]]
+    actual.append(references)
+    predicted.append(caption1.split())
+    beam_predicted.append(caption2.split())
+    beam_predicted2.append(caption3.split())
+    bleu = corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0))
+    bleu_beam = corpus_bleu(actual, beam_predicted, weights=(0.5, 0.5, 0, 0))
+    bleu_beam2 = corpus_bleu(actual, beam_predicted2, weights=(0.5, 0.5, 0, 0))
 
     # Display the image
     plt.imshow(image)
@@ -92,7 +102,6 @@ for i in range(5):
     plt.axis('off')  # Turn off axis labels
     plt.show()
 
-    print('Greedy search:', caption1)
-    print('Beam Search, k=3:', caption2)
-    print('Beam Search, k=5:', caption3)
-    print('Beam Search, k=7:', caption4)
+    print('Greedy search:', caption1, 'Bleu is:', str(bleu))
+    print('Beam Search, k=3:', caption2, 'Bleu is:', str(bleu_beam))
+    print('Beam Search, k=5:', caption3, 'Bleu is:', str(bleu_beam2))
