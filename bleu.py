@@ -17,3 +17,8 @@ for key, desc_list in (reference.items()):
 print("Greedy Search Predicted Captions BLEU-2: %f" % corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0)))
 print("Beam Search K=5 Predicted Captions BLEU-2: %f" % corpus_bleu(actual, beam_predicted, weights=(0.5, 0.5, 0, 0)))
 
+print('CORPUS - BLEU-1: %f' % corpus_bleu(actual, predicted, weights=(1, 0, 0, 0)))
+print('CORPUS - BLEU-2: %f' % corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0)))
+print('CORPUS - BLEU-3: %f' % corpus_bleu(actual, predicted, weights=(0.3, 0.3, 0.3, 0)))
+print('CORPUS - BLEU-4: %f' % corpus_bleu(actual, predicted, weights=(0.25, 0.25, 0.25, 0.25)))
+
